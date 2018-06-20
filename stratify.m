@@ -14,6 +14,7 @@ function stratify()
     g = 981; % gravitational constant
     Ep = 0.001; % convergence tolerance
     nmax = 200; % maximum iterations
+    show_solution = true; % whether to show the solution converge?
 
     Rp1 = 2.65; %C5 Specific gravity of sediment
     D = 0.1; %C6 Sediment grain size in mm
@@ -40,49 +41,57 @@ function stratify()
     Ristar = (Rp1-1) * 981 * H * 100 * Cr / ustar^2;
 
     % Sub Initialize()
-    dzeta = (1 - zetar) / nintervals;
+    dzeta = (1 - zetar) / nintervals; % spatial step in vertical
     for i = 1:nintervals+1
         zeta(i, 1) = zetar + dzeta * (i - 1);
         Ri(i) = 0;
         Fstrat(i) = 1;
     end
-    Converges = false;
-    Bombs = false;
-    n = 0;
-    un(1) = unr;
-    cn(1) = 1;
+    Converges = false; % boolean for whether iteration is within convergence error
+    Bombs = false; % boolean for if the equations do not converge
+    n = 0; % iteration number
+    un(1) = unr; % velocity profile
+    cn(1) = 1; % conventration profile
     intc(1) = 0;
     
-    [un, cn, unold, cnold, Ri, Fstrat] = ComputeUCnormal(n, nintervals, un, cn, kappa, zeta, Fstrat, dzeta, intc, ustarr, Ristar);
-    ui = un;
+    % initilize a guess profile with the initial params (Rouse-Vanoni solution)
+    [un, cn, unold, cnold, Fstrat] = ComputeUCnormal(n, nintervals, un, cn, kappa, zeta, Fstrat, dzeta, intc, ustarr, Ristar);
+    ui = un; % save the initial velocity and concentration profiles for comparison 
     ci = cn;
     
-    figure()
-    while ~or(Bombs, Converges)
-        n = n + 1;
-        [un, cn, unold, cnold, Ri, Fstrat] = ComputeUCnormal(n, nintervals, un, cn, kappa, zeta, Fstrat, dzeta, intc, ustarr, Ristar);
+     
+    solnFig = figure('Visible', 'off'); % solution figure
+    
+    while ~or(Bombs, Converges) % while not converged or exceeded iternations
+        n = n + 1; % iterate
+        [un, cn, unold, cnold, Fstrat] = ComputeUCnormal(n, nintervals, un, cn, kappa, zeta, Fstrat, dzeta, intc, ustarr, Ristar);
         [Bombs, Converges] = CheckConvergence(n, nintervals, un, cn, unold, cnold, Ep, nmax);
         
-        subplot(1, 2, 1)
-            plot(un, zeta)
-        subplot(1, 2, 2)
-            plot(cn, zeta)
-        drawnow
+        if show_solution
+            figure(solnFig);
+            subplot(1, 2, 1)
+                plot(un, zeta)
+            subplot(1, 2, 2)
+                plot(cn, zeta)
+            drawnow
+        end
     end
+    % end solution
     
-    Rou = vs/kappa*ustar;
-    c0 = 1 .* ( ((1-zeta)./zeta) ./ ((1 - zetar) / zetar) ) .^ Rou;
-
     if Bombs
         error('no convergence')
     else
+        % plot the final result
         figure()
         subplot(1, 2, 1); hold on;
-            plot(ustar.*ui/100, H.*zeta)
-            plot(ustar.*un/100, H.*zeta)
+            plot(ustar.*ui/100, H.*zeta, 'LineWidth', 1.5)
+            plot(ustar.*un/100, H.*zeta, 'LineWidth', 1.5)
+            xlabel('velocity (m/s)')
+            ylabel('dist above bed (m)')
         subplot(1, 2, 2); hold on;
-            plot(Cr.*ci, H.*zeta)    
-            plot(Cr.*cn, H.*zeta)
+            plot(Cr.*ci, H.*zeta, 'LineWidth', 1.5)
+            plot(Cr.*cn, H.*zeta, 'LineWidth', 1.5)
+            xlabel('conc. profile (1)')
             legend('no strat', 'strat')
     end
 
@@ -90,7 +99,7 @@ function stratify()
 
 end
 
-function [un, cn, unold, cnold, Ri, Fstrat] = ComputeUCnormal(n, nintervals, un, cn, kappa, zeta, Fstrat, dzeta, intc, ustarr, Ristar)
+function [un, cn, unold, cnold, Fstrat] = ComputeUCnormal(n, nintervals, un, cn, kappa, zeta, Fstrat, dzeta, intc, ustarr, Ristar)
 
     if n > 0
         for i = 1:nintervals + 1
