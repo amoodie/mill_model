@@ -35,6 +35,9 @@ opts.Cb = 1e-3;
 % define ref conc or calc it
 
 
+%% process any relevant options
+
+
 %% compute the concentration profile for each grain class
 for i = 1:size(gs, 1)
     mill.D = gs.class(i) * 1e-6;

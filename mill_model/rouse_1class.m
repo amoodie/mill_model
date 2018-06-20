@@ -1,17 +1,15 @@
-function [un, cn, u, c, soln] = denstrat_1class(mill, soln, opts, con)
-    % a function to calculate the density stratified profile for one grain
+function [un, cn, u, c] = rouse_1class(mill, opts, con)
+    % a function to calculate the standard Rouse-Vanoni profile for one grain
     % size class. Requires inputs.
     %
     % inputs:
     %   mill = struct with D, H, kc, ustar, zeta
-    %   soln = structure with fields: tol, nmax
     %   opts = additional options
     %   con = conset
     %
     % outputs:
     %   un = velocity profile
     %   cn = concentration profile
-    %   soln = the solution structure with solution information for debug
     %
     
     % determine reference concentration near bed
@@ -31,21 +29,33 @@ function [un, cn, u, c, soln] = denstrat_1class(mill, soln, opts, con)
     Ristar = con.R * con.g * mill.H * Cb / mill.ustar^2;
 
     % preallocate vectors
-    Ri = zeros(size(mill.zeta));
-    Fstrat = ones(size(mill.zeta));
-    un = unr .* ones(size(mill.zeta)); % velocity profile
-    cn = ones(size(mill.zeta)); % conventration profile
-    intc = zeros(size(mill.zeta));
+%     Ri = zeros(size(mill.zeta));
+%     Fstrat = ones(size(mill.zeta));
+%     un = unr .* ones(size(mill.zeta)); % velocity profile
+%     cn = ones(size(mill.zeta)); % conventration profile
+%     intc = zeros(size(mill.zeta));
     
     % set soln params
-    soln.converges = false; % boolean for whether iteration is within convergence error
-    soln.bombs = false; % boolean for if the equations do not converge
-    soln.n = 0; % iteration number
+%     soln.converges = false; % boolean for whether iteration is within convergence error
+%     soln.bombs = false; % boolean for if the equations do not converge
+%     soln.n = 0; % iteration number
     
     % initilize a guess profile with the initial params (Rouse-Vanoni solution)
-    [un, cn, Fstrat] = ComputeUCnormal(un, cn, Fstrat, intc, ustarr, Ristar, mill, soln, con);
-    ui = un; % save the initial velocity  
-    ci = cn; % and concentration profile
+%     [un, cn, Fstrat] = ComputeUCnormal(un, cn, Fstrat, intc, ustarr, Ristar, mill, soln, con);
+%     ui = un; % save the initial velocity  
+%     ci = cn; % and concentration profile
+    Beta = 1;
+    Rou = ws ./ (Beta .* 0.41 .* mill.ustar);
+    
+    
+    [Zs, Cs] = rouse(h, b, Es(c), Rou(c));
+    [ZsNorm(:, c), CsNorm(:, c)] = normalize_model(Zs(:, c), Cs(:, c));
+    
+    CsSum = nansum(Cs, 2);
+    ZsSum = nanmean(Zs, 2);
+    [ZsSumNorm, CsSumNorm] = normalize_model(ZsSum, CsSum);
+    bulkRou = nansum(Rou .* (gs(:,2) ./ 100)');
+    
     
     solnFig = figure('Visible', 'off'); % solution figure
     
