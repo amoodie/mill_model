@@ -9,6 +9,8 @@ version 0.1 -- alpha, anything may change at any time.
 Authors:
 * Andrew J. Moodie
 
+Note that this code relies on a settling velocity calculator defined in [`get_DSV.m` in another Matlab file located here.](https://github.com/amoodie/Matlab_programs/blob/master/get_DSV.m)
+
 ## files
 
 ### mill_model
@@ -18,10 +20,19 @@ Each file should contain an individual function.
 
 Scripts written to manipulate these functions (i.e., to make a model) should be prefixed with `script_`.
 
+* `script_1paramset.m` is the simplest case where one grain size _distribution_ is suspended into a mill with one parameter set.
+
+Functions may have any namespace, but try to make it descriptive and self-similar for functions serving a similar purpose.
+
+* `denstrat_1class.m` is a function to calculate the density stratified profile for one grain size class. Requires inputs.
+
 
 ### `stratify.m`
 This is a direct reimplementation of the parker ebook RTe-bookSuspSedDensityStrat in Matlab.
-Note that even this code relies on a settling velocity calculator defined in [`get_DSV.m` in another Matlab file located here.](https://github.com/amoodie/Matlab_programs/blob/master/get_DSV.m)
+This code solves for the DS adjusted profile for one grain class.
+The profiles are plotted at the end of the calculation (against the "no stratificaion" case).
+
 
 ### `simple_suspension.m`
-This is a simple Rouse model. All functions contained therein.
+This is a simple Rouse model. 
+

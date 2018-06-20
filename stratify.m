@@ -3,14 +3,17 @@ function stratify()
     % RTe-bookSuspSedDensityStrat
     %
     % all initial parameters are the same.
+    % all variable names have been left the same.
+    % comments were added by AJM
+    % none of the code has been vectorized for speed.
     %
 
-    zetar = 0.05;
-    nintervals = 50;
-    kappa = 0.4;
-    g = 981;
-    Ep = 0.001; % convergence tolerance (?)
-    nmax = 200;
+    zetar = 0.05; % reference height for beginning zeta vector
+    nintervals = 50; % number of points in zeta
+    kappa = 0.4; % von Karman
+    g = 981; % gravitational constant
+    Ep = 0.001; % convergence tolerance
+    nmax = 200; % maximum iterations
 
     Rp1 = 2.65; %C5 Specific gravity of sediment
     D = 0.1; %C6 Sediment grain size in mm
@@ -19,16 +22,16 @@ function stratify()
     ustar = 2; %C9	Shear velocity in cm/s
     nu = 0.01; %C10	Kinematic viscosity of water, cm^2/s
 
-    % sub getvalues
+    % Sub GetInputData()
     Aa = 0.00000013;
     if false
         Cr = 1e-3;
     else
         ustars = ustar; % skin friction component
-        Rep = sqrt((Rp1-1)*981*(D/10))*(D/10)/nu;
-        vs = get_DSV(D*1e-3, 0.7, 3.5) * 100;
-        Zgp = (ustars / vs) * Rep ^ (0.6);
-        Cr = Aa * Zgp ^ 5 / (1 + Aa / 0.3 * Zgp ^ 5);
+        Rep = sqrt((Rp1-1)*981*(D/10))*(D/10)/nu; % particle reynolds number
+        vs = get_DSV(D*1e-3, 0.7, 3.5) * 100; % settling velocity
+        Zgp = (ustars / vs) * Rep ^ (0.6); % Garcia and Parker, Z number
+        Cr = Aa * Zgp ^ 5 / (1 + Aa / 0.3 * Zgp ^ 5); % reference concentration
     end
     Hr = (H * 100) / (kc / 10);
     ustarr = ustar / (vs); % Ratio of shear velocity to fall velocity
@@ -124,8 +127,6 @@ end
 
 function [Bombs, Converges] = CheckConvergence(n, nintervals, un, cn, unold, cnold, Ep, nmax)
              
-%     Dim Error As Single: Dim ern As Single: Dim erc As Single
-%     Dim i As Integer
     if n > 0
         Error = 0;
         for i = 1:nintervals
@@ -149,107 +150,6 @@ function [Bombs, Converges] = CheckConvergence(n, nintervals, un, cn, unold, cno
                 Bombs = false;
             end
         end
-%         If Error < Ep Then
-%             Converges = True
-%         Else
-%             If n >= nmax Then Bombs = True
-%         End If
-%     End If
     end
-% End Sub
 end
 
-% 
-% Rem Attribute VBA_ModuleType=VBAModule
-% Option VBASupport 1
-% Private c As Single
-% Const zetar = 0.05
-% Const nintervals = 50
-% Const kappa = 0.4
-% Const g = 981
-% Const Ep = 0.001
-% Const nmax = 200
-% Private ustarr As Single: Private dzeta As Single: Private qs As Single
-% Private una As Single: Private cna As Single:
-% Private unr As Single: Private Ristar As Single
-% Private un(100) As Single: Private cn(100) As Single: Private zeta(100) As Single
-% Private unold(100) As Single: Private cnold(100) As Single
-% Private Fstrat(100) As Single: Private Ri(100) As Single: Private intc(100) As Single
-% Private n As Integer
-% Private Converges As Boolean: Private Bombs As Boolean
-% Private nchoice As Integer
-% 
-% Sub ClearAll()
-%         Range(Cells(26, 1), Cells(76, 6)).Select
-%         Selection.ClearContents
-%         Range(Cells(39, 6), Cells(40, 12)).Select
-%         Selection.ClearContents
-%         Range(Cells(16, 12), Cells(17, 17)).Select
-%         Selection.ClearContents
-%         Range(Cells(19, 7), Cells(19, 7)).Select
-%         Selection.ClearContents
-%         Range(Cells(9, 10), Cells(9, 10)).Select
-% End Sub
-% 
-% Sub Choice()
-%     nchoice = Worksheets(2).Cells(1, 21).Value
-%     Range(Cells(20, 7), Cells(20, 7)).Select
-%     Selection.ClearContents
-%     If nchoice = 1 Then
-%         Worksheets(2).Range(Cells(19, 7), Cells(19, 7)).Select
-%         Selection.ClearContents
-%         Worksheets(2).Cells(16, 10).Value = "Specify reference volume concentration"
-%         Worksheets(2).Range(Cells(17, 13), Cells(17, 17)).Select
-%         Selection.ClearContents
-%         Worksheets(2).Range(Cells(16, 16), Cells(16, 16)).Select
-%     Else
-%         Worksheets(2).Cells(16, 10).Value = "Specify a shear velocity due to skin friction in cm/s"
-%         Worksheets(2).Range(Cells(16, 17), Cells(16, 16)).Select
-%     End If
-% End Sub
-%     
-% 
-
-% 
-% Sub WriteBase()
-%     Dim i As Integer
-%     For i = 1 To nintervals + 1
-%         Worksheets(2).Cells(25 + i, 2).Value = un(i)
-%         Worksheets(2).Cells(25 + i, 3).Value = cn(i)
-%     Next i
-%     If n = 0 Then
-%         Worksheets(2).Cells(39, 7).Value = una
-%         Worksheets(2).Cells(39, 8).Value = cna
-%         Worksheets(2).Cells(39, 9).Value = qs
-%     End If
-% 
-% End Sub
-%
-%         
-% Sub WriteAnswer()
-%     Dim i As Integer
-%     For i = 1 To nintervals + 1
-%         Worksheets(2).Cells(25 + i, 4).Value = un(i)
-%         Worksheets(2).Cells(25 + i, 5).Value = cn(i)
-%         Worksheets(2).Cells(25 + i, 6).Value = Ri(i)
-%     Next i
-%     If n > 0 Then
-%         Worksheets(2).Cells(39, 10).Value = una
-%         Worksheets(2).Cells(39, 11).Value = cna
-%         Worksheets(2).Cells(39, 12).Value = qs
-%     End If
-%     Worksheets(2).Cells(40, 7).Value = "Number of iterations required = "
-%     Worksheets(2).Cells(40, 10).Value = n
-%     Range(Cells(41, 7), Cells(41, 7)).Select
-% End Sub
-% 
-% Sub Sing()
-%     Worksheets(2).Range(Cells(26, 4), Cells(76, 6)).Select
-%     Selection.ClearContents
-%     Worksheets(2).Range(Cells(39, 7), Cells(39, 12)).Select
-%     Selection.ClearContents
-%     Worksheets(2).Cells(26, 4).Value = "Calculation failed to converge"
-% End Sub
-% 
-% 
-% 
