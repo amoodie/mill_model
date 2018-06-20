@@ -31,7 +31,7 @@ function stratify()
         Cr = Aa * Zgp ^ 5 / (1 + Aa / 0.3 * Zgp ^ 5);
     end
     Hr = (H * 100) / (kc / 10);
-    ustarr = ustar / (vs); %	Ratio of shear velocity to fall velocity
+    ustarr = ustar / (vs); % Ratio of shear velocity to fall velocity
     unr = 1 / 0.4 * log(30 * 0.05 * Hr);
     Ristar = (Rp1-1) * 981 * H * 100 * Cr / ustar^2;
 
@@ -50,6 +50,8 @@ function stratify()
     intc(1) = 0;
     
     [un, cn, unold, cnold, Ri, Fstrat] = ComputeUCnormal(n, nintervals, un, cn, kappa, zeta, Fstrat, dzeta, intc, ustarr, Ristar);
+    ui = un;
+    ci = cn;
     
     figure()
     while ~or(Bombs, Converges)
@@ -71,13 +73,13 @@ function stratify()
         error('no convergence')
     else
         figure()
-        subplot(1, 2, 1)
+        subplot(1, 2, 1); hold on;
+            plot(ustar.*ui/100, H.*zeta)
             plot(ustar.*un/100, H.*zeta)
-        subplot(1, 2, 2)
-        hold on
+        subplot(1, 2, 2); hold on;
+            plot(Cr.*ci, H.*zeta)    
             plot(Cr.*cn, H.*zeta)
-            plot(Cr.*c0, H.*zeta)
-            legend('strat', 'nostrat')
+            legend('no strat', 'strat')
     end
 
 
