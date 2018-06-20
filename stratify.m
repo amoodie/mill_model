@@ -23,9 +23,10 @@ function stratify()
     nu = 0.01; %C10	Kinematic viscosity of water, cm^2/s
 
     % Sub GetInputData()
-    Aa = 0.00000013;
-    if false
-        Cr = 1e-3;
+    Aa = 0.00000013; % garcia and parker constant
+    setCr = false; % do you want to manually set the reference concentration?
+    if setCr
+        Cr = 1e-3; % set the ref conc here if manual
     else
         ustars = ustar; % skin friction component
         Rep = sqrt((Rp1-1)*981*(D/10))*(D/10)/nu; % particle reynolds number

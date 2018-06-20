@@ -1,5 +1,43 @@
-function denstrat_1class()
-    % 
+function stratify()
+    % this function will run the Gary Parker ebook code in Matlab:
+    % RTe-bookSuspSedDensityStrat
+    %
+    % all initial parameters are the same.
+    % all variable names have been left the same.
+    % comments were added by AJM
+    % none of the code has been vectorized for speed.
+    %
+
+    zetar = 0.05; % reference height for beginning zeta vector
+    nintervals = 50; % number of points in zeta
+    kappa = 0.4; % von Karman
+    Ep = 0.001; % convergence tolerance
+    nmax = 200; % maximum iterations
+    
+    [con] = load_conset('quartz-water');
+
+    D = 100e-6; %C6 Sediment grain size in m
+    H =	1; %C7 Flow depth in m
+    kc = 2e-3; %C8 Composite roughness height in m (including effect of bedforms if present)
+    ustar = 0.02; %C9	Shear velocity in m/s
+%     nu = 0.01; %C10	Kinematic viscosity of water, cm^2/s
+
+    % Sub GetInputData()
+    Aa = 0.00000013; % garcia and parker constant
+    setCr = false; % do you want to manually set the reference concentration?
+    if setCr
+        Cr = 1e-3; % set the ref conc here if manual
+    else
+        ustars = ustar; % skin friction component
+        Rep = sqrt((con.R) * con.g * D)*(D) / con.nu; % particle reynolds number
+        vs = get_DSV(D, 0.7, 3.5, con); % settling velocity
+        Zgp = (ustars / vs) * Rep ^ (0.6); % Garcia and Parker, Z number
+        Cr = Aa * Zgp ^ 5 / (1 + Aa / 0.3 * Zgp ^ 5); % reference concentration 
+    end
+    Hr = H / kc;
+    ustarr = ustar / vs; % Ratio of shear velocity to fall velocity
+    unr = 1 / 0.4 * log(30 * 0.05 * Hr);
+    Ristar = con.R * con.g * H * Cr / ustar^2;
 
     % Sub Initialize()
     dzeta = (1 - zetar) / nintervals;
@@ -40,8 +78,8 @@ function denstrat_1class()
     else
         figure()
         subplot(1, 2, 1); hold on;
-            plot(ustar.*ui/100, H.*zeta)
-            plot(ustar.*un/100, H.*zeta)
+            plot(ustar.*ui, H.*zeta)
+            plot(ustar.*un, H.*zeta)
         subplot(1, 2, 2); hold on;
             plot(Cr.*ci, H.*zeta)    
             plot(Cr.*cn, H.*zeta)
@@ -90,8 +128,6 @@ end
 
 function [Bombs, Converges] = CheckConvergence(n, nintervals, un, cn, unold, cnold, Ep, nmax)
              
-%     Dim Error As Single: Dim ern As Single: Dim erc As Single
-%     Dim i As Integer
     if n > 0
         Error = 0;
         for i = 1:nintervals
@@ -115,107 +151,6 @@ function [Bombs, Converges] = CheckConvergence(n, nintervals, un, cn, unold, cno
                 Bombs = false;
             end
         end
-%         If Error < Ep Then
-%             Converges = True
-%         Else
-%             If n >= nmax Then Bombs = True
-%         End If
-%     End If
     end
-% End Sub
 end
 
-% 
-% Rem Attribute VBA_ModuleType=VBAModule
-% Option VBASupport 1
-% Private c As Single
-% Const zetar = 0.05
-% Const nintervals = 50
-% Const kappa = 0.4
-% Const g = 981
-% Const Ep = 0.001
-% Const nmax = 200
-% Private ustarr As Single: Private dzeta As Single: Private qs As Single
-% Private una As Single: Private cna As Single:
-% Private unr As Single: Private Ristar As Single
-% Private un(100) As Single: Private cn(100) As Single: Private zeta(100) As Single
-% Private unold(100) As Single: Private cnold(100) As Single
-% Private Fstrat(100) As Single: Private Ri(100) As Single: Private intc(100) As Single
-% Private n As Integer
-% Private Converges As Boolean: Private Bombs As Boolean
-% Private nchoice As Integer
-% 
-% Sub ClearAll()
-%         Range(Cells(26, 1), Cells(76, 6)).Select
-%         Selection.ClearContents
-%         Range(Cells(39, 6), Cells(40, 12)).Select
-%         Selection.ClearContents
-%         Range(Cells(16, 12), Cells(17, 17)).Select
-%         Selection.ClearContents
-%         Range(Cells(19, 7), Cells(19, 7)).Select
-%         Selection.ClearContents
-%         Range(Cells(9, 10), Cells(9, 10)).Select
-% End Sub
-% 
-% Sub Choice()
-%     nchoice = Worksheets(2).Cells(1, 21).Value
-%     Range(Cells(20, 7), Cells(20, 7)).Select
-%     Selection.ClearContents
-%     If nchoice = 1 Then
-%         Worksheets(2).Range(Cells(19, 7), Cells(19, 7)).Select
-%         Selection.ClearContents
-%         Worksheets(2).Cells(16, 10).Value = "Specify reference volume concentration"
-%         Worksheets(2).Range(Cells(17, 13), Cells(17, 17)).Select
-%         Selection.ClearContents
-%         Worksheets(2).Range(Cells(16, 16), Cells(16, 16)).Select
-%     Else
-%         Worksheets(2).Cells(16, 10).Value = "Specify a shear velocity due to skin friction in cm/s"
-%         Worksheets(2).Range(Cells(16, 17), Cells(16, 16)).Select
-%     End If
-% End Sub
-%     
-% 
-
-% 
-% Sub WriteBase()
-%     Dim i As Integer
-%     For i = 1 To nintervals + 1
-%         Worksheets(2).Cells(25 + i, 2).Value = un(i)
-%         Worksheets(2).Cells(25 + i, 3).Value = cn(i)
-%     Next i
-%     If n = 0 Then
-%         Worksheets(2).Cells(39, 7).Value = una
-%         Worksheets(2).Cells(39, 8).Value = cna
-%         Worksheets(2).Cells(39, 9).Value = qs
-%     End If
-% 
-% End Sub
-%
-%         
-% Sub WriteAnswer()
-%     Dim i As Integer
-%     For i = 1 To nintervals + 1
-%         Worksheets(2).Cells(25 + i, 4).Value = un(i)
-%         Worksheets(2).Cells(25 + i, 5).Value = cn(i)
-%         Worksheets(2).Cells(25 + i, 6).Value = Ri(i)
-%     Next i
-%     If n > 0 Then
-%         Worksheets(2).Cells(39, 10).Value = una
-%         Worksheets(2).Cells(39, 11).Value = cna
-%         Worksheets(2).Cells(39, 12).Value = qs
-%     End If
-%     Worksheets(2).Cells(40, 7).Value = "Number of iterations required = "
-%     Worksheets(2).Cells(40, 10).Value = n
-%     Range(Cells(41, 7), Cells(41, 7)).Select
-% End Sub
-% 
-% Sub Sing()
-%     Worksheets(2).Range(Cells(26, 4), Cells(76, 6)).Select
-%     Selection.ClearContents
-%     Worksheets(2).Range(Cells(39, 7), Cells(39, 12)).Select
-%     Selection.ClearContents
-%     Worksheets(2).Cells(26, 4).Value = "Calculation failed to converge"
-% End Sub
-% 
-% 
-% 
