@@ -1,4 +1,4 @@
-function [un, cn, soln] = denstrat_1class(mill, soln, opts, con)
+function [un, cn, u, c, soln] = denstrat_1class(mill, soln, opts, con)
     % a function to calculate the density stratified profile for one grain
     % size class. Requires inputs.
     %
@@ -70,6 +70,9 @@ function [un, cn, soln] = denstrat_1class(mill, soln, opts, con)
         end
     end
     % end solution
+    
+    u = un .* mill.ustar;
+    c = cn .* Cb;
     
     if soln.bombs
         error('no convergence')
