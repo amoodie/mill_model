@@ -1,4 +1,9 @@
-function stratify
+function stratify()
+    % this function will run the Gary Parker ebook code in Matlab:
+    % RTe-bookSuspSedDensityStrat
+    %
+    % all initial parameters are the same.
+    %
 
     zetar = 0.05;
     nintervals = 50;
@@ -9,7 +14,7 @@ function stratify
 
     Rp1 = 2.65; %C5 Specific gravity of sediment
     D = 0.1; %C6 Sediment grain size in mm
-    H =	0.49; %C7 Flow depth in m
+    H =	1; %C7 Flow depth in m
     kc = 2; %C8 Composite roughness height in mm (including effect of bedforms if present)
     ustar = 2; %C9	Shear velocity in cm/s
     nu = 0.01; %C10	Kinematic viscosity of water, cm^2/s
