@@ -1,155 +1,145 @@
-function stratify()
-    % this function will run the Gary Parker ebook code in Matlab:
-    % RTe-bookSuspSedDensityStrat
+function [un, cn, soln] = denstrat_1class(mill, soln, opts, con)
+    % a function to calculate the density stratified profile for one grain
+    % size class. Requires inputs.
     %
-    % all initial parameters are the same.
-    % all variable names have been left the same.
-    % comments were added by AJM
-    % none of the code has been vectorized for speed.
+    % inputs:
+    %   mill = struct with D, H, kc, ustar, zeta
+    %   soln = structure with fields: tol, nmax
+    %   opts = additional options
+    %   con = conset
     %
-
-    zetar = 0.05; % reference height for beginning zeta vector
-    nintervals = 50; % number of points in zeta
-    kappa = 0.4; % von Karman
-    Ep = 0.001; % convergence tolerance
-    nmax = 200; % maximum iterations
+    % outputs:
+    %   un = velocity profile
+    %   cn = concentration profile
+    %   soln = the solution structure with solution information for debug
+    %
     
-    [con] = load_conset('quartz-water');
-
-    D = 100e-6; %C6 Sediment grain size in m
-    H =	1; %C7 Flow depth in m
-    kc = 2e-3; %C8 Composite roughness height in m (including effect of bedforms if present)
-    ustar = 0.02; %C9	Shear velocity in m/s
-%     nu = 0.01; %C10	Kinematic viscosity of water, cm^2/s
-
-    % Sub GetInputData()
-    Aa = 0.00000013; % garcia and parker constant
-    setCr = false; % do you want to manually set the reference concentration?
-    if setCr
-        Cr = 1e-3; % set the ref conc here if manual
+    % determine reference concentration near bed
+    if opts.setCb
+        Cb = opts.Cb; % set the ref conc here if manual
     else
-        ustars = ustar; % skin friction component
-        Rep = sqrt((con.R) * con.g * D)*(D) / con.nu; % particle reynolds number
-        vs = get_DSV(D, 0.7, 3.5, con); % settling velocity
+        Aa = 0.00000013; % Garcia-Parker constant
+        ustars = mill.ustar; % skin friction component
+        Rep = sqrt((con.R) * con.g * mill.D)*(mill.D) / con.nu; % particle reynolds number
+        vs = get_DSV(mill.D, 0.7, 3.5, con); % settling velocity
         Zgp = (ustars / vs) * Rep ^ (0.6); % Garcia and Parker, Z number
-        Cr = Aa * Zgp ^ 5 / (1 + Aa / 0.3 * Zgp ^ 5); % reference concentration 
+        Cb = Aa * Zgp ^ 5 / (1 + Aa / 0.3 * Zgp ^ 5); % reference concentration 
     end
-    Hr = H / kc;
-    ustarr = ustar / vs; % Ratio of shear velocity to fall velocity
+    Hr = mill.H / mill.kc;
+    ustarr = mill.ustar / vs; % Ratio of shear velocity to fall velocity
     unr = 1 / 0.4 * log(30 * 0.05 * Hr);
-    Ristar = con.R * con.g * H * Cr / ustar^2;
+    Ristar = con.R * con.g * mill.H * Cb / mill.ustar^2;
 
-    % Sub Initialize()
-    dzeta = (1 - zetar) / nintervals;
-    for i = 1:nintervals+1
-        zeta(i, 1) = zetar + dzeta * (i - 1);
-        Ri(i) = 0;
-        Fstrat(i) = 1;
-    end
-    Converges = false;
-    Bombs = false;
-    n = 0;
-    un(1) = unr;
-    cn(1) = 1;
-    intc(1) = 0;
+    % preallocate vectors
+    Ri = zeros(size(mill.zeta));
+    Fstrat = ones(size(mill.zeta));
+    un = unr .* ones(size(mill.zeta)); % velocity profile
+    cn = ones(size(mill.zeta)); % conventration profile
+    intc = zeros(size(mill.zeta));
     
-    [un, cn, unold, cnold, Ri, Fstrat] = ComputeUCnormal(n, nintervals, un, cn, kappa, zeta, Fstrat, dzeta, intc, ustarr, Ristar);
-    ui = un;
-    ci = cn;
+    % set soln params
+    soln.converges = false; % boolean for whether iteration is within convergence error
+    soln.bombs = false; % boolean for if the equations do not converge
+    soln.n = 0; % iteration number
     
-    figure()
-    while ~or(Bombs, Converges)
-        n = n + 1;
-        [un, cn, unold, cnold, Ri, Fstrat] = ComputeUCnormal(n, nintervals, un, cn, kappa, zeta, Fstrat, dzeta, intc, ustarr, Ristar);
-        [Bombs, Converges] = CheckConvergence(n, nintervals, un, cn, unold, cnold, Ep, nmax);
+    % initilize a guess profile with the initial params (Rouse-Vanoni solution)
+    [un, cn, Fstrat] = ComputeUCnormal(un, cn, Fstrat, intc, ustarr, Ristar, mill, soln, con);
+    ui = un; % save the initial velocity  
+    ci = cn; % and concentration profile
+    
+    solnFig = figure('Visible', 'off'); % solution figure
+    
+    while ~or(soln.bombs, soln.converges) % while not converged or exceeded iternations
         
-        subplot(1, 2, 1)
-            plot(un, zeta)
-        subplot(1, 2, 2)
-            plot(cn, zeta)
-        drawnow
+        soln.n = soln.n + 1; % iterate
+        
+        un0 = un; % save old for convergence
+        cn0 = cn;
+        
+        [un, cn, Fstrat] = ComputeUCnormal(un, cn, Fstrat, intc, ustarr, Ristar, mill, soln, con);
+        [soln] = CheckConvergence(un, cn, un0, cn0, mill, soln);
+        
+        if soln.show_iter
+            figure(solnFig);
+            title(['solving D = ', num2str(mill.D)])
+            subplot(1, 2, 1)
+                plot(un, mill.zeta)
+            subplot(1, 2, 2)
+                plot(cn, mill.zeta)
+            drawnow
+        end
     end
+    % end solution
     
-    Rou = vs/kappa*ustar;
-    c0 = 1 .* ( ((1-zeta)./zeta) ./ ((1 - zetar) / zetar) ) .^ Rou;
-
-    if Bombs
+    if soln.bombs
         error('no convergence')
     else
-        figure()
-        subplot(1, 2, 1); hold on;
-            plot(ustar.*ui, H.*zeta)
-            plot(ustar.*un, H.*zeta)
-        subplot(1, 2, 2); hold on;
-            plot(Cr.*ci, H.*zeta)    
-            plot(Cr.*cn, H.*zeta)
-            legend('no strat', 'strat')
+        if soln.show_final
+            % plot the final result
+            figure()
+            subplot(1, 2, 1); hold on;
+                plot(mill.ustar .* ui/100, mill.H .* mill.zeta, 'LineWidth', 1.5)
+                plot(mill.ustar .* un/100, mill.H .* mill.zeta, 'LineWidth', 1.5)
+                xlabel('velocity (m/s)')
+                ylabel('dist above bed (m)')
+            subplot(1, 2, 2); hold on;
+                plot(Cb .* ci, mill.H .* mill.zeta, 'LineWidth', 1.5)
+                plot(Cb .* cn, mill.H .* mill.zeta, 'LineWidth', 1.5)
+                xlabel('conc. profile (1)')
+                legend('no strat', 'strat')
+        end
     end
 
 
 
 end
 
-function [un, cn, unold, cnold, Ri, Fstrat] = ComputeUCnormal(n, nintervals, un, cn, kappa, zeta, Fstrat, dzeta, intc, ustarr, Ristar)
+function [un, cn, Fstrat] = ComputeUCnormal(un, cn, Fstrat, intc, ustarr, Ristar, mill, soln, con)
 
-    if n > 0
-        for i = 1:nintervals + 1
-            unold(i) = un(i);
-            cnold(i) = cn(i);
+    % this must be solved from the bed up sequentially
+    for i = 2:(mill.nzeta + 1)
+        ku1 = 1 / (con.kappa * mill.zeta(i - 1) * Fstrat(i - 1));
+        ku2 = 1 / (con.kappa * mill.zeta(i) * Fstrat(i));
+        un(i) = un(i - 1) + 0.5 * (ku1 + ku2) * mill.dzeta;
+        kc1 = 1 / ((1 - mill.zeta(i - 1)) * mill.zeta(i - 1) * Fstrat(i - 1));
+        kc2 = 1 / ((1 - mill.zeta(i)) * mill.zeta(i) * Fstrat(i));
+        intc(i) = intc(i - 1) + 0.5 * (kc1 + kc2) * mill.dzeta;
+        cn(i) = exp(-1 / con.kappa / ustarr * intc(i));
+    end
+    
+    una = trapz(mill.zeta, un);
+    cna = trapz(mill.zeta, cn);
+    qs = trapz(mill.zeta, cn .* un);
+
+    Ri = Ristar .* (con.kappa .* mill.zeta .* Fstrat) ./ (ustarr .* (1 - mill.zeta)) .* cn;
+    X = (1.35 .* Ri) ./ (1 + (1.35 .* Ri));
+    Fstrat = 1 ./ (1 + (10 .* X));
+    
+end
+
+function [soln] = CheckConvergence(un, cn, un0, cn0, mill, soln)
+    
+    Error = 0;
+    % vectorize this
+    for i = 1:mill.nzeta
+        ern = abs(2 * (un(i) - un0(i)) / (un(i) + un0(i)));
+        erc = abs(2 * (cn(i) - cn0(i)) / (cn(i) + cn0(i)));
+        if ern > Error
+            Error = ern;
         end
+        if erc > Error
+            Error = erc;
+        end
+    end
+    if Error < soln.Ep
+        soln.converges = true;
+        soln.bombs = false;
     else
-        unold = un;
-        cnold = cn;
-    end
-    for i = 2:nintervals + 1
-        ku1 = 1 / (kappa * zeta(i - 1) * Fstrat(i - 1));
-        ku2 = 1 / (kappa * zeta(i) * Fstrat(i));
-        un(i) = un(i - 1) + 0.5 * (ku1 + ku2) * dzeta;
-        kc1 = 1 / ((1 - zeta(i - 1)) * zeta(i - 1) * Fstrat(i - 1));
-        kc2 = 1 / ((1 - zeta(i)) * zeta(i) * Fstrat(i));
-        intc(i) = intc(i - 1) + 0.5 * (kc1 + kc2) * dzeta;
-        cn(i) = exp(-1 / kappa / ustarr * intc(i));
-    end
-    una = 0.5 * dzeta * (un(1) + un(nintervals + 1));
-    cna = 0.5 * dzeta * (cn(1) + cn(nintervals + 1));
-    qs = 0.5 * dzeta * (un(1) * cn(1) + un(nintervals + 1) * cn(nintervals + 1));
-    for i = 2:nintervals + 1
-        una = una + dzeta * un(i);
-        cna = cna + dzeta * cn(i);
-        qs = qs + dzeta * un(i) * cn(i);
-    end
-    for i = 1:nintervals + 1
-        Ri(i) = Ristar * (kappa * zeta(i) * Fstrat(i)) / (ustarr * (1 - zeta(i))) * cn(i);
-        X = 1.35 * Ri(i) / (1 + 1.35 * Ri(i));
-        Fstrat(i) = 1 / (1 + 10 * X);
-    end
-
-end
-
-function [Bombs, Converges] = CheckConvergence(n, nintervals, un, cn, unold, cnold, Ep, nmax)
-             
-    if n > 0
-        Error = 0;
-        for i = 1:nintervals
-            ern = abs(2 * (un(i) - unold(i)) / (un(i) + unold(i)));
-            erc = abs(2 * (cn(i) - cnold(i)) / (cn(i) + cnold(i)));
-            if ern > Error
-                Error = ern;
-            end
-            if erc > Error
-                Error = erc;
-            end
-        end
-        if Error < Ep
-            Converges = true;
-            Bombs = false;
+        soln.converges = false;
+        if soln.n >= soln.nmax
+            soln.bombs = true;
         else
-            Converges = false;
-            if n >= nmax
-                Bombs = true;
-            else
-                Bombs = false;
-            end
+            soln.bombs = false;
         end
     end
 end
