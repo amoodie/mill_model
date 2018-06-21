@@ -41,9 +41,10 @@ opts.Cb = 1e-3;
 %% compute the concentration profile for each grain class
 for i = 1:size(gs, 1)
     mill.D = gs.class(i) * 1e-6;
-    [un1gs, cn1gs, u1gs, c1gs, ~] = denstrat_1class(mill, soln, opts, con);
-    u(:, i) = u1gs .* (gs.perc(i) / 100);
-    c(:, i) = c1gs .* (gs.perc(i) / 100);
+    [un1gsDS, cn1gsDS, u1gsDS, c1gsDS, ~] = denstrat_1class(mill, soln, opts, con);
+    uDS(:, i) = u1gsDS .* (gs.perc(i) / 100);
+    cDS(:, i) = c1gsDS .* (gs.perc(i) / 100);
+    [un1gsRou, cn1gsRou, u1gsRou, c1gsRou] = rouse_1class(mill, opts, con);
 end
 
 %% sum the grain classes into one profile

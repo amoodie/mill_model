@@ -48,7 +48,7 @@ function [un, cn, u, c] = rouse_1class(mill, opts, con)
     Rou = ws ./ (Beta .* 0.41 .* mill.ustar);
     
     
-    [Zs, Cs] = rouse(h, b, Es(c), Rou(c));
+    [Zs, Cs] = rouse(mill.zeta, Es(c), Rou(c));
     [ZsNorm(:, c), CsNorm(:, c)] = normalize_model(Zs(:, c), Cs(:, c));
     
     CsSum = nansum(Cs, 2);

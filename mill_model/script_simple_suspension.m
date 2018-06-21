@@ -45,7 +45,6 @@ Xi = (ustar ./ ws) .* (Rep .^ 0.6) .* (S .^ 0.08) .* (gs(:, 1) ./ D50) .^ 0.2; %
 Es = (gs(:, 2) / 100) .* entr_WP04(lambda, Xi);
 Rou = ws ./ (Beta .* 0.41 .* ustar);
 
-
 for c = 1:size(gs, 1)
     [Cs(:, c), Zs(:, c)] = rouse(h, b, Es(c), Rou(c));
     [CsNorm(:, c), ZsNorm(:, c)] = normalize_model(Zs(:, c), Cs(:, c));
