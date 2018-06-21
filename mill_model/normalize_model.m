@@ -1,6 +1,5 @@
-
-function [modelEvalZsN, modelEvalCsN] = normalize_model(modelEvalZs, modelEvalCs)
-    modelEvalZsN = modelEvalZs ./ modelEvalZs(end);
-    modelEvalCsN = modelEvalCs ./ modelEvalCs(1);
+function [cn, zn] = normalize_model(z, c)
+    zn = z ./ z(end);
+    cn = c ./ c(1);
     
 end

@@ -47,8 +47,8 @@ Rou = ws ./ (Beta .* 0.41 .* ustar);
 
 
 for c = 1:size(gs, 1)
-    [Zs(:, c), Cs(:, c)] = rouse(h, b, Es(c), Rou(c));
-    [ZsNorm(:, c), CsNorm(:, c)] = normalize_model(Zs(:, c), Cs(:, c));
+    [Cs(:, c), Zs(:, c)] = rouse(h, b, Es(c), Rou(c));
+    [CsNorm(:, c), ZsNorm(:, c)] = normalize_model(Zs(:, c), Cs(:, c));
 end
 
 CsSum = nansum(Cs, 2);
