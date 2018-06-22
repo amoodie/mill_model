@@ -1,4 +1,6 @@
 
+clear all;
+
 %% input parameters (mill dimensions)
 con = load_conset('quartz-water'); % constants for quartz in water
 H = 0.5; % total flume water height
@@ -45,14 +47,16 @@ Xi = (ustar ./ ws) .* (Rep .^ 0.6) .* (S .^ 0.08) .* (gs(:, 1) ./ D50) .^ 0.2; %
 Es = (gs(:, 2) / 100) .* entr_WP04(lambda, Xi);
 Rou = ws ./ (Beta .* 0.41 .* ustar);
 
+z = linspace(H * 0.05, H, 50);
 for c = 1:size(gs, 1)
-    [Cs(:, c), Zs(:, c)] = rouse(h, b, Es(c), Rou(c));
-    [CsNorm(:, c), ZsNorm(:, c)] = normalize_model(Zs(:, c), Cs(:, c));
+    
+    [cs(:, c), zs(:, c)] = rouse(z, Es(c), Rou(c));
+    [csNorm(:, c), zsNorm(:, c)] = normalize_model(cs(:, c), zs(:, c));
 end
 
-CsSum = nansum(Cs, 2);
-ZsSum = nanmean(Zs, 2);
-[ZsSumNorm, CsSumNorm] = normalize_model(ZsSum, CsSum);
+csSum = nansum(cs, 2);
+zsSum = nanmean(zs, 2);
+[csSumNorm, zsSumNorm] = normalize_model(csSum, zsSum);
 bulkRou = nansum(Rou .* (gs(:,2) ./ 100)');
 
 
@@ -64,7 +68,7 @@ bulkRou = nansum(Rou .* (gs(:,2) ./ 100)');
 
 if true
     figure();
-    plot(CsSum, ZsSum, 'ok')
+    plot(csSum, zsSum, 'ok')
 end
 
 
