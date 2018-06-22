@@ -13,7 +13,7 @@ gs.Properties.VariableNames = {'class', 'perc'};
 mill.D = []; % assigned in loop, sediment grain size in m
 mill.H = 0.5; % flow depth in m
 mill.kc = 2e-3; % composite roughness height in m (including effect of bedforms if present)
-mill.ustar = 0.15; % shear velocity in m/s
+mill.ustar = 0.05; % shear velocity in m/s
 mill.zetar = 0.05; % reference height for beginning zeta vector
 mill.nzeta = 50; % number of points in zeta
 mill.zeta = linspace(mill.zetar, 1, mill.nzeta+1)';
@@ -44,13 +44,17 @@ for i = 1:size(gs, 1)
     [un1gsDS, cn1gsDS, u1gsDS, c1gsDS, ~] = denstrat_1class(mill, soln, opts, con);
     uDS(:, i) = u1gsDS .* (gs.perc(i) / 100);
     cDS(:, i) = c1gsDS .* (gs.perc(i) / 100);
-    [un1gsRou, cn1gsRou, u1gsRou, c1gsRou] = rouse_1class(mill, opts, con);
+    [cn1gsRou, c1gsRou] = rouse_1class(mill, opts, con);
+    cRou(:, i) = c1gsRou .* (gs.perc(i) / 100);
 end
 
 %% sum the grain classes into one profile
-uSum = sum(u, 2);
-cSum = sum(c, 2);
+uSumDS = sum(uDS, 2);
+cSumDS = sum(cDS, 2);
+cSumRou = sum(cRou, 2);
 
-figure()
-plot(cSum, mill.H .* mill.zeta)
+figure(); hold on;
+plot(cSumRou, mill.H .* mill.zeta)
+plot(cSumDS, mill.H .* mill.zeta)
+legend('no strat', 'strat')
 
