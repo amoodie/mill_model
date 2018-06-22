@@ -1,4 +1,4 @@
-function [c, z] = rouse(z, cb, Rou)
+function [c, z] = rouse(z0, cb, Rou)
     %rouse computes the Rouse-Vanoni profile for a single grain size and concentration
     %
     % [c, z] = rouse(z, cb, Rou) computes the Rouse-Vanoni concentration
@@ -14,31 +14,30 @@ function [c, z] = rouse(z, cb, Rou)
     % points.
     %
     
-%     if ~isempty(varargin)
-%         if length(varargin) > 1
-%             warning('Too many arguments supplied, only using the first optional argument')
-%         end
-%         varargdims = size(varargin{1});
-%         if any(varargdims > 1)
-%             % its a vector
-%         else
-%             %its a scalar
-%         end
-%     else
-%         n = 50;
-%         z = linspace(b, h, n)';
-%     end
-    if any(size(z) > 1)
+
+    if any(size(z0) > 1)
         % vector supplied, check interval and proceed
-        if ~ismatrix(z)
-            error('
+        if ~ismatrix(z0) % check if input is matrix
+            warning('Matrix input for z vector not supported. Using first column only.')
+            z = z0(:, 1);
         end
+        z = z0;
     else
         n = 50;
-        z = linspace(b, h, n)';
+        b = z0 * 0.05;
+        z = linspace(b, z0, n)';
     end
     
-    hbb = (h - b) / b; % this is ((H-b)/b), a constant
-    c = cb .* ( ((h-z)./z) ./ hbb ) .^ Rou;
+    % check all in range
+    if any(z < 0)
+        warning('Negative evaluation points supplied, removing.')
+        z = z(~(z < 0));
+    end
+    h = max(z);
+    b = min(z);
+    
+    % solve
+    hbb = (h - b) / b; % this is ((h - b) / b), a constant
+    c = cb .* ( ((h - z) ./ z) ./ hbb ) .^ Rou;
     
 end
