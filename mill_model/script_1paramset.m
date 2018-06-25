@@ -1,4 +1,6 @@
 
+clear all
+
 %% load conset and colorset(?)
 [con] = load_conset('quartz-water');
 con.kappa = 0.4; % von Karman
@@ -67,7 +69,12 @@ legend('no strat', 'strat')
 
 gsmap = parula(size(gs, 1));
 figure(); hold on;
+[l(1)] = plot([0 0], [NaN, NaN], 'LineStyle', 'none');
 for i = 1:size(gs, 1)
-    plot(cRou(:, i), mill.H .* mill.zeta, 'LineStyle', '--', 'Color', gsmap(i, :), 'LineWidth', 1.5)
-    plot(cDS(:, i), mill.H .* mill.zeta, 'LineStyle', '-', 'Color', gsmap(i, :), 'LineWidth', 1.5)
+    plot(cRou(:, i), mill.H .* mill.zeta, 'LineStyle', '--', 'Color', gsmap(i, :), 'LineWidth', 1.5);
+    [l(i+1)] = plot(cDS(:, i), mill.H .* mill.zeta, 'LineStyle', '-', 'Color', gsmap(i, :), 'LineWidth', 1.5);
 end
+legend(l, vertcat({'gs = '}, cellstr(num2str(round(gs.class, 2)))) )
+xlabel('conc (-)')
+ylabel('height (m)')
+
