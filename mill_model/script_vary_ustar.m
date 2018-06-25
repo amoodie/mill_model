@@ -1,4 +1,6 @@
 
+clear all
+
 %% load conset and colorset(?)
 [con] = load_conset('quartz-water');
 con.kappa = 0.4; % von Karman
@@ -33,14 +35,23 @@ opts.Cb = 1e-3;
 % opts.floc = floc?
 % opts.flocthresh = 30e-6; % everything smaller becomes this size
 % define ref conc or calc it
+ustar_range = linspace(0.01, 0.17, 12); % the ustars to test the mill at
 
 
 %% process any relevant options
 
 
+%% preallocate
+uDS = zeros(length(mill.zeta), length(gs.class), length(ustar_range));
+cDS = zeros(length(mill.zeta), length(gs.class), length(ustar_range));
+cRou = zeros(length(mill.zeta), length(gs.class), length(ustar_range));
+uSumDS = zeros(length(mill.zeta), length(gs.class));
+cSumDS = zeros(length(mill.zeta), length(gs.class));
+cSumRou = zeros(length(mill.zeta), length(gs.class));
+
 %% compute the concentration profile for each grain class
 for i = 1:length(ustar_range)
-    %% select the loop ustar
+    % select the loop ustar
     mill.ustar = ustar_range(i);
     
     for j = 1:size(gs, 1)
@@ -56,21 +67,27 @@ for i = 1:length(ustar_range)
         cRou(:, j, i) = c1gsRou .* (gs.perc(j) / 100);
     end
     
-    %% sum the grain classes into one profile
-    uSumDS = sum(uDS, 2);
-    cSumDS = sum(cDS, 2);
-    cSumRou = sum(cRou, 2);
+    % sum the grain classes into one profile
+    uSumDS(:, i) = sum(uDS(:, :, i), 2);
+    cSumDS(:, i) = sum(cDS(:, :, i), 2);
+    cSumRou(:, i) = sum(cRou(:, :, i), 2);
 end
+
 
 %% make some plots
-figure(); hold on;
-plot(cSumRou, mill.H .* mill.zeta)
-plot(cSumDS, mill.H .* mill.zeta)
-legend('no strat', 'strat')
 
-gsmap = parula(size(gs, 1));
+% plot the DS-Rou pairs for each ustar
+nskip = 2;
+ustar_plotidx = 1:nskip:length(ustar_range);
+ustarmap = parula(length(ustar_plotidx));
 figure(); hold on;
-for i = 1:size(gs, 1)
-    plot(cRou(:, i), mill.H .* mill.zeta, 'LineStyle', '--', 'Color', gsmap(i, :), 'LineWidth', 1.5)
-    plot(cDS(:, i), mill.H .* mill.zeta, 'LineStyle', '-', 'Color', gsmap(i, :), 'LineWidth', 1.5)
+[l(1)] = plot([0 0], [NaN, NaN], 'LineStyle', 'none');
+for i = 1:length(ustar_plotidx)
+    ii = ustar_plotidx(i);
+    plot(cSumRou(:, ii), mill.H .* mill.zeta, 'LineStyle', '--', 'Color', ustarmap(i, :), 'LineWidth', 1.5);
+    [l(i+1)] = plot(cSumDS(:, ii), mill.H .* mill.zeta, 'LineStyle', '-', 'Color', ustarmap(i, :), 'LineWidth', 1.5);
 end
+legend( l, vertcat({'u_* = '}, cellstr(num2str(round(ustar_range(ustar_plotidx), 2)'))) )
+xlabel('conc (-)')
+ylabel('height (m)')
+
