@@ -47,8 +47,9 @@ function [un, cn, u, c, soln] = denstrat_1class(mill, soln, opts, con)
     ui = un; % save the initial velocity  
     ci = cn; % and concentration profile
     
-    solnFig = figure('Visible', 'off'); % solution figure
-    
+    if soln.show_iter
+        solnFig = figure('Visible', 'off'); % solution figure
+    end
     while ~or(soln.bombs, soln.converges) % while not converged or exceeded iternations
         
         soln.n = soln.n + 1; % iterate
