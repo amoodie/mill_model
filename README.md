@@ -11,28 +11,28 @@ Authors:
 
 Note that this code relies on a settling velocity calculator defined in [`get_DSV.m` in another Matlab file located here.](https://github.com/amoodie/Matlab_programs/blob/master/get_DSV.m)
 
-## files
+## documentation
 
 ### mill_model
 
 This folder contains all the files used to run the mill model. 
-Each file should contain an individual function.
+Each file should contain an individual function or script.
 
-Scripts written to manipulate these functions (i.e., to make a model) should be prefixed with `script_`.
+See [`mill_model_docs.md`](mill_model_docs.md) for complete documentation.
 
-* `script_1paramset.m` is the simplest case where one grain size _distribution_ is suspended into a mill with one parameter set.
+### grainsize_distributions
 
-Functions may have any namespace, but try to make it descriptive and self-similar for functions serving a similar purpose.
-
-* `denstrat_1class.m` is a function to calculate the density stratified profile for one grain size class. Requires inputs.
-
-
-### `stratify.m`
-This is a direct reimplementation of the parker ebook RTe-bookSuspSedDensityStrat in Matlab.
-This code solves for the DS adjusted profile for one grain class.
-The profiles are plotted at the end of the calculation (against the "no stratificaion" case).
+This folder contains tab or comma separated value documents with grainsize distributions therein.
+Use `load_grainsize(filepath)` to load a sheet for use in your script.
+If you add a new distribution, add it to the [`grainsize_distributions_docs.md`](grainsize_distributions_docs.md) file with a complete description.
 
 
-### `simple_suspension.m`
-This is a simple Rouse model. 
+
+## todo list
+
+- [ ] documentation for `find_Dxx`
+- [ ] make `find_Dxx` robust to cumulative distribution inputs
+- [ ] documentation for `entr_WP04`
+- [ ] make `load_grainsize` flexible and robust (has a todo list inside)
+- [ ] documentation for `makeDistToData` (and change name?)
 
