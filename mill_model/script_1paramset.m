@@ -58,3 +58,9 @@ plot(cSumRou, mill.H .* mill.zeta)
 plot(cSumDS, mill.H .* mill.zeta)
 legend('no strat', 'strat')
 
+gsmap = parula(size(gs, 1));
+figure(); hold on;
+for i = 1:size(gs, 1)
+    plot(cRou(:, i), mill.H .* mill.zeta, 'LineStyle', '--', 'Color', gsmap(i, :), 'LineWidth', 1.5)
+    plot(cDS(:, i), mill.H .* mill.zeta, 'LineStyle', '-', 'Color', gsmap(i, :), 'LineWidth', 1.5)
+end
