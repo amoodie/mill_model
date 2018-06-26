@@ -26,6 +26,8 @@ ylabel("\bar{u'v'}")
 % the more sediment goes into suspension, the more comes off the bed and
 % the bed elevation lowers. We should add more sediment to the mill for the
 % higher stresses to keep the bed at a constant elevation.
+bedH = 0.02; % height of bed to maintain through all ustar expts
+bedV = pi * (mill.diam/2) ^ 2 * bedH * 1000; % liters of sed needed with no suspension
 
 
 %% sediment needed for total experiments
