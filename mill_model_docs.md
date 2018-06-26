@@ -15,6 +15,16 @@ This code solves for the DS adjusted profile for one grain class.
 The profiles are plotted at the end of the calculation (against the "no stratificaion" case).
 
 
+#### `script_aux_calcs_calibrations.m`
+This script contains auxiliary calculation and calibrations needed in the process of the spinner mills experiment design and execution.
+Herein are calculation and calibrations for:
+* volts-to-rpm
+* rpm-to-stress
+* how much sediment will be needed to maintain a const. elevation
+* how much sediment is needed total (including drawn samples)
+
+
+
 ## Functions
 Functions may have any namespace, but try to make it descriptive and self-similar for functions serving a similar purpose.
 
