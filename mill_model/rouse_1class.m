@@ -28,8 +28,7 @@ function [cn, c] = rouse_1class(mill, opts, con)
     unr = 1 / 0.4 * log(30 * 0.05 * Hr);
     Ristar = con.R * con.g * mill.H * Cb / mill.ustar^2;
 
-    Beta = 1;
-    Rou = ws ./ (Beta .* 0.41 .* mill.ustar);
+    Rou = ws ./ (mill.Beta .* 0.41 .* mill.ustar);
     
     [c, z] = rouse(mill.zeta, Cb, Rou);
     [cn, zn] = normalize_model(c, mill.zeta);

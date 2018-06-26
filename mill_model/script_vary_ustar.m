@@ -13,10 +13,14 @@ gs.Properties.VariableNames = {'class', 'perc'};
 
 %% enter parameters for the spinner mill
 mill.D = []; % assigned in loop, sediment grain size in m
-mill.H = 0.5; % flow depth in m
+mill.H = 0.5; % flow depth in m (stationary water, above bed!)
+mill.diam = 0.2; % mill diameter in m
+mill.V = pi * (mill.diam/2) ^ 2 * mill.H; % volume of water in m3
+mill.Vl = mill.V * 1000; % volume in liters
 mill.kc = 2e-3; % composite roughness height in m (including effect of bedforms if present)
 mill.ustar = []; % assigned in loop, shear velocity in m/s
-mill.zetar = 0.05; % reference height for beginning zeta vector
+mill.Beta = 1; % the adjustment factor to the spinner mill (?)
+mill.zetar = 0.05 .* mill.H; % reference height for beginning zeta vector
 mill.nzeta = 50; % number of points in zeta
 mill.zeta = linspace(mill.zetar, 1, mill.nzeta+1)';
 mill.dzeta = mill.zeta(2) - mill.zeta(1);
@@ -35,24 +39,26 @@ opts.Cb = 1e-3;
 % opts.floc = floc?
 % opts.flocthresh = 30e-6; % everything smaller becomes this size
 % define ref conc or calc it
-ustar_range = linspace(0.01, 0.17, 12); % the ustars to test the mill at
+
+ustars = linspace(0.01, 0.15, 12); % the u*s to test the mill at
+samp_z = [0.1, 0.15, 0.25, 0.5, 0.85] .* mill.H;
 
 
 %% process any relevant options
 
 
 %% preallocate
-uDS = zeros(length(mill.zeta), length(gs.class), length(ustar_range));
-cDS = zeros(length(mill.zeta), length(gs.class), length(ustar_range));
-cRou = zeros(length(mill.zeta), length(gs.class), length(ustar_range));
+uDS = zeros(length(mill.zeta), length(gs.class), length(ustars));
+cDS = zeros(length(mill.zeta), length(gs.class), length(ustars));
+cRou = zeros(length(mill.zeta), length(gs.class), length(ustars));
 uSumDS = zeros(length(mill.zeta), length(gs.class));
 cSumDS = zeros(length(mill.zeta), length(gs.class));
 cSumRou = zeros(length(mill.zeta), length(gs.class));
 
 %% compute the concentration profile for each grain class
-for i = 1:length(ustar_range)
+for i = 1:length(ustars)
     % select the loop ustar
-    mill.ustar = ustar_range(i);
+    mill.ustar = ustars(i);
     
     for j = 1:size(gs, 1)
         mill.D = gs.class(j) * 1e-6;
@@ -73,12 +79,34 @@ for i = 1:length(ustar_range)
     cSumRou(:, i) = sum(cRou(:, :, i), 2);
 end
 
+%% determine experimental observables
+% find the concentration at each vs the Rouse conc
+czDS = interp1(mill.zeta, cSumDS, samp_z); % predicted conc at sampling ports
+czRou = interp1(mill.zeta, cSumRou, samp_z);
+
+figure(); hold on;
+subplot(3, 1, 1)
+    plot(ustars, czDS, '-o', 'LineWidth', 1.5)
+    legend(num2str(samp_z'), 'Location', 'NorthWest')
+    ylabel('conc of samp (DS) @z')
+subplot(3, 1, 2)
+    plot(ustars, czRou - czDS, '-o', 'LineWidth', 1.5)
+    ylabel('Rou\_mdl - DS @z')
+subplot(3, 1, 3)
+    plot(ustars, czDS .* 2650 * 0.5, '-o', 'LineWidth', 1.5)
+    ylabel('mass of samp @z in 0.5 L (g)')
+    xlabel('u_* (m/s)')
+
+
+% find the 
+
+
 
 %% make some plots
 
 % plot the DS-Rou pairs for each ustar
 nskip = 2;
-ustar_plotidx = 1:nskip:length(ustar_range);
+ustar_plotidx = 1:nskip:length(ustars);
 ustarmap = parula(length(ustar_plotidx));
 figure(); hold on;
 [l(1)] = plot([0 0], [NaN, NaN], 'LineStyle', 'none');
@@ -87,7 +115,8 @@ for i = 1:length(ustar_plotidx)
     plot(cSumRou(:, ii), mill.H .* mill.zeta, 'LineStyle', '--', 'Color', ustarmap(i, :), 'LineWidth', 1.5);
     [l(i+1)] = plot(cSumDS(:, ii), mill.H .* mill.zeta, 'LineStyle', '-', 'Color', ustarmap(i, :), 'LineWidth', 1.5);
 end
-legend( l, vertcat({'u_* = '}, cellstr(num2str(round(ustar_range(ustar_plotidx), 2)'))) )
+legend( l, vertcat({'u_* = '}, cellstr(num2str(round(ustars(ustar_plotidx), 2)'))) )
 xlabel('conc (-)')
 ylabel('height (m)')
 
+j=1;

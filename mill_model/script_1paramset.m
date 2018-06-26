@@ -74,7 +74,7 @@ for i = 1:size(gs, 1)
     plot(cRou(:, i), mill.H .* mill.zeta, 'LineStyle', '--', 'Color', gsmap(i, :), 'LineWidth', 1.5);
     [l(i+1)] = plot(cDS(:, i), mill.H .* mill.zeta, 'LineStyle', '-', 'Color', gsmap(i, :), 'LineWidth', 1.5);
 end
-legend(l, vertcat({'gs = '}, cellstr(num2str(round(gs.class, 2)))) )
+legend(l, vertcat({'gs (\mu m) = '}, cellstr(num2str(round(gs.class, 0)))) )
 xlabel('conc (-)')
 ylabel('height (m)')
 
