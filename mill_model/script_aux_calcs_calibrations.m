@@ -19,17 +19,20 @@ upvps = [3 4 5 6]; % measured \bar{u'v'} at the nearest bed measurement feasible
 figure()
 plot(rpms_s, upvps, '-o', 'LineWidth', 1.5)
 xlabel('rpm')
-ylabel("\bar{u'v'}")
+ylabel('{u\prime v\prime}')
 
 
 %% sediment needed for alluvial bed
 % the more sediment goes into suspension, the more comes off the bed and
 % the bed elevation lowers. We should add more sediment to the mill for the
 % higher stresses to keep the bed at a constant elevation.
+diam = 0.2;
 bedH = 0.02; % height of bed to maintain through all ustar expts
-bedV = pi * (mill.diam/2) ^ 2 * bedH * 1000; % liters of sed needed with no suspension
+bedV = pi * (diam/2) ^ 2 * bedH * 1000; % liters of sed needed with no suspension
 
 
 %% sediment needed for total experiments
 % based on estimates of total sediment withdrawal for each sample, adding
 % more to the bed, how much sediment do I need *in total*
+
+
