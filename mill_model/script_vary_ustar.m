@@ -39,8 +39,9 @@ opts.Cb = 1e-3;
 % opts.floc = floc?
 % opts.flocthresh = 30e-6; % everything smaller becomes this size
 % define ref conc or calc it
+opts.uncert = 0.1; % percentage uncertainty in all factors
 
-ustars = linspace(0.01, 0.15, 12); % the u*s to test the mill at
+ustars = linspace(0.02, 0.15, 12); % the u*s to test the mill at
 samp_z = [0.1, 0.15, 0.25, 0.5, 0.85] .* mill.H;
 
 
@@ -54,6 +55,7 @@ cRou = zeros(length(mill.zeta), length(gs.class), length(ustars));
 uSumDS = zeros(length(mill.zeta), length(gs.class));
 cSumDS = zeros(length(mill.zeta), length(gs.class));
 cSumRou = zeros(length(mill.zeta), length(gs.class));
+
 
 %% compute the concentration profile for each grain class
 for i = 1:length(ustars)
@@ -71,12 +73,31 @@ for i = 1:length(ustars)
         % calculate the rouse profile
         [cn1gsRou, c1gsRou] = rouse_1class(mill, opts, con);
         cRou(:, j, i) = c1gsRou .* (gs.perc(j) / 100);
+        
+        % calculate lower and upper bounds assuming uncert in ustar
+        mill.ustar = ustars(i) * (1 - opts.uncert); % lower bound uncertainty
+        [~, ~, ~, c1gsDSlow, ~] = denstrat_1class(mill, soln, opts, con);
+        cDSlow(:, j, i) = c1gsDSlow .* (gs.perc(j) / 100);
+        
+        [~, c1gsRoulow] = rouse_1class(mill, opts, con);
+        cRoulow(:, j, i) = c1gsRoulow .* (gs.perc(j) / 100);
+        
+        mill.ustar = ustars(i) * (1 + opts.uncert); % upper bound uncert
+        [~, ~, ~, c1gsDShigh, ~] = denstrat_1class(mill, soln, opts, con);
+        cDShigh(:, j, i) = c1gsDShigh .* (gs.perc(j) / 100);
+        
+        [~, c1gsRouhigh] = rouse_1class(mill, opts, con);
+        cRouhigh(:, j, i) = c1gsRouhigh .* (gs.perc(j) / 100);
     end
     
     % sum the grain classes into one profile
     uSumDS(:, i) = sum(uDS(:, :, i), 2);
-    cSumDS(:, i) = sum(cDS(:, :, i), 2);
+    cSumDS(:, i) = nansum(cDS(:, :, i), 2);
     cSumRou(:, i) = sum(cRou(:, :, i), 2);
+    cSumDSlow(:, i) = nansum(cDSlow(:, :, i), 2);
+    cSumDShigh(:, i) = nansum(cDShigh(:, :, i), 2);
+    cSumRoulow(:, i) = sum(cRoulow(:, :, i), 2);
+    cSumRouhigh(:, i) = sum(cRouhigh(:, :, i), 2);
 end
 
 %% determine experimental observables
@@ -98,7 +119,7 @@ subplot(3, 1, 3)
     xlabel('u_* (m/s)')
 
 
-% find the 
+% find the mass of sediment
 
 
 
@@ -118,5 +139,27 @@ end
 legend( l, vertcat({'u_* = '}, cellstr(num2str(round(ustars(ustar_plotidx), 2)'))) )
 xlabel('conc (-)')
 ylabel('height (m)')
+
+
+%% look at uncertainty explicitly
+ustar_plotidx = [1, floor(length(ustars)/2), length(ustars)];
+ustarmap = parula(length(ustar_plotidx));
+figure(); hold on;
+[l(1)] = plot([0 0], [NaN, NaN], 'LineStyle', 'none');
+for i = 1:length(ustar_plotidx)
+    ii = ustar_plotidx(i);
+    patch([cSumRoulow(:, ii); flipud(cSumRouhigh(:, ii))], [mill.H .* mill.zeta; flipud(mill.H .* mill.zeta)], ...
+        [ustarmap(i, :)], 'FaceAlpha', 0.2, 'EdgeAlpha', '0')
+    patch([cSumDSlow(:, ii); flipud(cSumDShigh(:, ii))], [mill.H .* mill.zeta; flipud(mill.H .* mill.zeta)], ...
+        [ustarmap(i, :)], 'FaceAlpha', 0.2, 'EdgeAlpha', '0')
+    plot(cSumRou(:, ii), mill.H .* mill.zeta, 'LineStyle', '--', 'Color', ustarmap(i, :), 'LineWidth', 1.5);
+    [l(i+1)] = plot(cSumDS(:, ii), mill.H .* mill.zeta, 'LineStyle', '-', 'Color', ustarmap(i, :), 'LineWidth', 1.5);
+end
+legend( l, vertcat({'u_* = '}, cellstr(num2str(round(ustars(ustar_plotidx), 2)'))) )
+xlabel('conc (-)')
+ylabel('height (m)')
+
+
+
 
 j=1;
