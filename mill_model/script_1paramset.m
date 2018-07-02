@@ -16,6 +16,7 @@ mill.D = []; % assigned in loop, sediment grain size in m
 mill.H = 0.5; % flow depth in m
 mill.kc = 2e-3; % composite roughness height in m (including effect of bedforms if present)
 mill.ustar = 0.05; % shear velocity in m/s
+mill.Beta = 1;
 mill.zetar = 0.05; % reference height for beginning zeta vector
 mill.nzeta = 50; % number of points in zeta
 mill.zeta = linspace(mill.zetar, 1, mill.nzeta+1)';
