@@ -41,7 +41,7 @@ opts.Cb = 1e-3;
 % define ref conc or calc it
 opts.uncert = 0.1; % percentage uncertainty in all factors
 
-ustars = linspace(0.02, 0.15, 12); % the u*s to test the mill at
+ustars = linspace(0.02, 0.10, 12); % the u*s to test the mill at
 samp_z = [0.1, 0.15, 0.25, 0.5, 0.75] .* mill.H;
 
 
@@ -154,7 +154,7 @@ for i = 1:length(ustar_plotidx)
     plot(cSumRou(:, ii), mill.H .* mill.zeta, 'LineStyle', '--', 'Color', ustarmap(i, :), 'LineWidth', 1.5);
     [l(i+1)] = plot(cSumDS(:, ii), mill.H .* mill.zeta, 'LineStyle', '-', 'Color', ustarmap(i, :), 'LineWidth', 1.5);
 end
-legend( l, vertcat({'u_* = '}, cellstr(num2str(round(ustars(ustar_plotidx), 2)'))) )
+legend(l, vertcat({'u_* = '}, cellstr(num2str(round(ustars(ustar_plotidx), 2)'))) )
 xlabel('conc (-)')
 ylabel('height (m)')
 
