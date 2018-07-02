@@ -42,7 +42,7 @@ opts.Cb = 1e-3;
 opts.uncert = 0.1; % percentage uncertainty in all factors
 
 ustars = linspace(0.02, 0.15, 12); % the u*s to test the mill at
-samp_z = [0.1, 0.15, 0.25, 0.5, 0.85] .* mill.H;
+samp_z = [0.1, 0.15, 0.25, 0.5, 0.75] .* mill.H;
 
 
 %% process any relevant options
@@ -59,13 +59,12 @@ cSumRou = zeros(length(mill.zeta), length(gs.class));
 
 %% compute the concentration profile for each grain class
 for i = 1:length(ustars)
-    % select the loop ustar
-    mill.ustar = ustars(i);
-    
+        
     for j = 1:size(gs, 1)
         mill.D = gs.class(j) * 1e-6;
         
         % calculate the denstity strat profile
+        mill.ustar = ustars(i);
         [un1gsDS, cn1gsDS, u1gsDS, c1gsDS, ~] = denstrat_1class(mill, soln, opts, con);
         uDS(:, j, i) = u1gsDS .* (gs.perc(j) / 100);
         cDS(:, j, i) = c1gsDS .* (gs.perc(j) / 100);
