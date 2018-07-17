@@ -38,7 +38,7 @@ opts.setCb = false;
 opts.Cb = 1e-3;
 
 opts.floc = true;
-opts.flocthresh = 40e-6; % everything smaller becomes this size
+opts.flocthresh = 40; % everything smaller becomes this size
 
 opts.uncert = 0.1; % percentage uncertainty in all factors
 
@@ -48,7 +48,10 @@ samp_z = [0.1, 0.15, 0.25, 0.5, 0.75] .* mill.H;
 
 %% process any relevant options
 if opts.floc
-    flocidx = find(gs.class < opts.flocthresh);
+    flocidx = find(gs.class < opts.flocthresh, 1, 'last'); % find the index of class above floc
+    flocvol = interp1(gs.class, cumsum(gs.perc), opts.flocthresh); % find the volume of flocced
+    gs(1, :) = {opts.flocthresh, flocvol}; % replace into first row
+    gs(2:flocidx, :) = []; % remove flocced rows
 end
 
 
