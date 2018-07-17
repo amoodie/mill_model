@@ -7,7 +7,7 @@ con.kappa = 0.4; % von Karman
 
 
 %% load grain size and ensure it is ready for use in models
-[gs] = load_grainsize(fullfile('..', 'grainsize_distributions', 'distribution_KC4.csv'));
+[gs] = load_grainsize(fullfile('..', 'grainsize_distributions', 'distribution_likeYR_tofloc.csv'));
 gs.Properties.VariableNames = {'class', 'perc'};
 
 
