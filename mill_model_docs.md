@@ -9,6 +9,7 @@ Calculated for both the DS and Rouse case and compared.
 #### `script_simple_suspension.m`
 This is a simple Rouse model.
 
+
 #### `script_stratify.m`
 This is a direct reimplementation of the parker ebook RTe-bookSuspSedDensityStrat in Matlab.
 This code solves for the DS adjusted profile for one grain class.
@@ -22,6 +23,16 @@ Herein are calculation and calibrations for:
 * rpm-to-stress
 * how much sediment will be needed to maintain a const. elevation
 * how much sediment is needed total (including drawn samples)
+
+
+#### `script_vary_ustar.m`
+This script loops through multiple shear stresses to predict the concentration profiles for many summed-grain-class suspensions.
+There are considerations to error in apparatus and in measurement, and predictions of sample volumes are made.
+This should be helpful for verifying that there will be detectable change in the experiments.
+
+
+#### `script_vary_ustar.m`
+This script is essentially the same as `script_vary_ustar.m`, but adds functionality of flocculated grains.
 
 
 
